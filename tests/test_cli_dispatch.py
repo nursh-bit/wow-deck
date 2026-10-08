@@ -1,8 +1,12 @@
 import ast, os
 
 
-def test_all_dispatch_targets_exist():
-    src = open(os.path.join(os.path.dirname(__file__), '..', 'wowdeck', 'cli.py')).read()
+import pytest
+
+
+@pytest.mark.parametrize('path', [('wowdeck', 'cli.py'), ('wowdeck', 'macos', 'cli.py')])
+def test_all_dispatch_targets_exist(path):
+    src = open(os.path.join(os.path.dirname(__file__), '..', *path)).read()
     tree = ast.parse(src)
     defined = {n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
     # find dict literals with string keys mapping to Names inside main()

@@ -1,6 +1,7 @@
 # Architecture
 
-wow-deck is a dependency-free Python 3 application for SteamOS (standard library plus the
+wow-deck is a dependency-free Python 3 application for SteamOS (with a smaller macOS
+platform, see [macos.md](macos.md)) (standard library plus the
 PyGObject/GTK4 bindings that SteamOS ships). It lives entirely under the user's home
 directory, with two keep-listed files under `/etc`, and every action it takes is idempotent
 and reversible.
@@ -26,6 +27,8 @@ wowdeck/
   gtkui.py                GTK4 touch front end (hub window, dialogs) replacing ui.*
   ui.py                   kdialog / zenity / plain-text dialog fallback
   help.py                 structured help content rendered by every front end
+  host.py                 platform selection (steamos / macos) and the user data folder
+  macos/                  macOS platform: discovery, components, verbs, help (docs/macos.md)
 share/
   wow-deck-launch.sh      Steam launch-option wrapper (controller switch around the game)
   wow-deck-edge.yaml      InputPlumber profile: targets ds5-edge + deck-uhid, no remaps

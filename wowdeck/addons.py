@@ -4,8 +4,9 @@ recorded in state.json so remove() only deletes what we placed. CurseForge adopt
 fingerprint on its next scan."""
 from __future__ import annotations
 import io, json, os, shutil, urllib.request, zipfile
+from . import host
 
-STATE = os.path.join(os.path.expanduser('~'), '.local', 'share', 'wow-deck', 'state.json')
+STATE = os.path.join(host.USER_DATA, 'state.json')
 
 # id -> manifest. 'folders' is informational (what the zip contains at top level).
 MANIFEST = {

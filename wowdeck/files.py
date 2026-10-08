@@ -2,11 +2,12 @@
 `sudo wow-deck --root-phase <action>` (see cli.root_phase)."""
 from __future__ import annotations
 import json, os, shutil, stat, subprocess, sys
+from . import host
 
 SHARE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'share')
 HOME = os.path.expanduser('~')
 USER_BIN = os.path.join(HOME, '.local', 'bin')
-USER_DATA = os.path.join(HOME, '.local', 'share', 'wow-deck')
+USER_DATA = host.USER_DATA
 WRAPPER = os.path.join(USER_BIN, 'wow-deck-launch.sh')
 ENV_CONF = os.path.join(USER_DATA, 'env.conf')
 LAUNCH_OPTIONS = f'{WRAPPER} %command%'

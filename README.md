@@ -57,3 +57,11 @@ SteamOS updates; `wow-deck uninstall` returns the Deck to stock.
 
 Troubleshooting: `wow-deck doctor`. If the Steam UI ever loses controller input, open a
 terminal (or SSH) and run `wow-deck paddles off`.
+
+## macOS
+
+On a Mac, WoW and Battle.net run natively, so WoW Deck only handles what sits around the game:
+it checks for Battle.net and World of Warcraft (opening the download page or Battle.net when
+something is missing) and installs ConsolePort and BugGrabber + BugSack. Run the same
+`install.sh` command in Terminal; it asks for Apple's Command Line Tools if they are missing
+and adds a **WoW Deck** launcher to `~/Applications`. Details: [docs/macos.md](docs/macos.md).
