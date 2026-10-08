@@ -59,9 +59,9 @@ SECTIONS: list[tuple[str, str, list]] = [
 ]
 
 
-def render_text(width: int = 78) -> str:
+def render_text(width: int = 78, sections: list | None = None) -> str:
     out = []
-    for heading, intro, items in SECTIONS:
+    for heading, intro, items in (SECTIONS if sections is None else sections):
         out.append(heading.upper()); out.append('')
         if intro:
             out.append(textwrap.fill(intro, width)); out.append('')

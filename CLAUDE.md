@@ -3,11 +3,14 @@
 One-button setup of World of Warcraft on a Steam Deck running stock SteamOS: Battle.net and the
 Steam shortcut, native paddle (back grip) buttons via InputPlumber's DualSense Edge target,
 ConsolePort and friends, CurseForge. Technical background lives in `docs/`
-(`controller-stack.md`, `steamos-integration.md`, `architecture.md`, `addons-and-curseforge.md`).
+(`controller-stack.md`, `steamos-integration.md`, `architecture.md`, `addons-and-curseforge.md`,
+`macos.md`). A macOS platform (`wowdeck/macos/`) covers Battle.net discovery and the addons.
 
 ## Conventions
 
-- Python 3.11+ (SteamOS ships python3), **standard library only** on the Deck side. Steam's
+- Python 3.11+ (SteamOS ships python3), **standard library only** on the Deck side. Code
+  reachable on macOS (`host.py`, `ui.py`, `addons.py`, `help.py`, `selfupdate.py`,
+  `components.py`, `wowdeck/macos/`) must also run on Python 3.9 (Apple's Command Line Tools). Steam's
   VDF formats are handled by the vendored `wowdeck/vdf.py`; no pip on the target.
 - One entry point: `bin/wow-deck` (`hub`, `setup`, `doctor`, `install`, `uninstall [--all]`,
   `paddles on|off`, `curseforge`, `help`). Everything idempotent; every write prints what it did.

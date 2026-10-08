@@ -1,9 +1,21 @@
 #!/bin/bash
-# wow-deck one-line installer for SteamOS (run in Desktop Mode):
+# wow-deck one-line installer for SteamOS (run in Desktop Mode) and macOS (run in Terminal):
 #   curl -fsSL <release-url>/install.sh | bash
 # or from a local checkout/tarball:  WOW_DECK_SRC=/path/to/wow-deck ./install.sh
 set -euo pipefail
-DEST="$HOME/.local/share/wow-deck/app"
+MACOS=; [ "$(uname -s)" = Darwin ] && MACOS=1
+if [ -n "$MACOS" ]; then
+  # A stock Mac only has a python3 stub until the Command Line Tools are installed.
+  if ! xcode-select -p >/dev/null 2>&1; then
+    echo "WoW Deck needs Apple's Command Line Tools (they provide python3). Opening the installer;"
+    echo "run this command again once it has finished."
+    xcode-select --install 2>/dev/null || true
+    exit 1
+  fi
+  DEST="$HOME/Library/Application Support/wow-deck/app"
+else
+  DEST="$HOME/.local/share/wow-deck/app"
+fi
 BIN="$HOME/.local/bin"
 SRC="${WOW_DECK_SRC:-}"
 URL="${WOW_DECK_URL:-https://github.com/seblindfors/wow-deck/releases/latest/download/wow-deck.tar.gz}"
@@ -22,6 +34,16 @@ else
 fi
 chmod +x "$DEST/bin/wow-deck"
 ln -sfn "$DEST/bin/wow-deck" "$BIN/wow-deck"
+if [ -n "$MACOS" ]; then
+  # Finder launcher: a .command file opens Terminal and runs the hub (osascript dialogs).
+  mkdir -p "$HOME/Applications"
+  printf '#!/bin/bash\nexec "%s" hub\n' "$DEST/bin/wow-deck" > "$HOME/Applications/WoW Deck.command"
+  chmod +x "$HOME/Applications/WoW Deck.command"
+  echo "wow-deck installed to $DEST (launcher: ~/Applications/WoW Deck.command)"
+  case ":$PATH:" in *":$BIN:"*) ;; *) echo "note: add $BIN to your PATH to use wow-deck in Terminal";; esac
+  echo
+  if [ $# -gt 0 ]; then exec "$BIN/wow-deck" "$@"; else exec "$BIN/wow-deck" hub; fi
+fi
 # Desktop launcher (application menu + Desktop icon). The file is named after the GTK
 # application id so KDE/Wayland can match the running window to it (window/taskbar icon).
 APPID=org.consoleport.wowdeck

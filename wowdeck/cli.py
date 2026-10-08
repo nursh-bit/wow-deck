@@ -476,6 +476,10 @@ def root_phase(action: str) -> int:
 
 
 def main(argv=None) -> int:
+    from . import host
+    if host.is_macos():
+        from .macos.cli import main as macos_main
+        return macos_main(argv)
     try:
         sys.stdout.reconfigure(line_buffering=True)   # keep our output ordered around sudo/subprocess calls
     except (AttributeError, ValueError):
