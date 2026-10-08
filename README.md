@@ -34,7 +34,7 @@ the manual Battle.net / non-Steam-game steps of the community guide: WoW Deck do
 1. **Install WoW Deck.** In Desktop Mode open Konsole and run:
 
    ```
-   curl -fsSL https://github.com/seblindfors/wow-deck/releases/latest/download/install.sh | bash
+   curl -fsSL https://github.com/nursh-bit/wow-deck/releases/latest/download/install.sh | bash
    ```
 
    This places the app and a **WoW Deck** icon on the Desktop and opens it.
