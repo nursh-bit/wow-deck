@@ -103,7 +103,9 @@ def install_zip_bytes(addon_id: str, data: bytes, wtf_dirs: list[str], log=print
 
 def remove(addon_id: str, wtf_dirs: list[str], log=print) -> None:
     st = _load_state()
-    folders = st.get('addons', {}).get(addon_id, {}).get('folders') or MANIFEST[addon_id]['folders']
+    folders = st.get('addons', {}).get(addon_id, {}).get('folders')
+    if not folders:                 # not placed by WoW Deck (e.g. installed through CurseForge): leave it
+        log(f'  kept    {MANIFEST[addon_id]["title"]} (not installed by WoW Deck)'); return
     for adir in addons_dirs(wtf_dirs):
         for f in folders:
             p = os.path.join(adir, f)

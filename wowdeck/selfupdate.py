@@ -1,9 +1,9 @@
-"""Self-update from the GitHub releases of seblindfors/wow-deck (works once the repo is public;
+"""Self-update from the GitHub releases of nursh-bit/wow-deck (works once the repo is public;
 a private repo returns 404 without a token). Replaces the app directory atomically."""
 from __future__ import annotations
-import io, json, os, shutil, tarfile, tempfile, urllib.request
+import io, json, os, shutil, tarfile, tempfile, urllib.error, urllib.request
 
-REPO = 'seblindfors/wow-deck'
+REPO = 'nursh-bit/wow-deck'
 APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -20,10 +20,15 @@ def _get(url: str) -> bytes:
         return r.read()
 
 
+NO_RELEASE = ('', '')            # the feed answered: nothing published (HTTP 404)
+
+
 def latest_release() -> tuple[str, str] | None:
-    """(version, tarball url) or None when unavailable."""
+    """(version, tarball url), NO_RELEASE when the repository has no release, None when unreachable."""
     try:
         rel = json.loads(_get(f'https://api.github.com/repos/{REPO}/releases/latest'))
+    except urllib.error.HTTPError as e:
+        return NO_RELEASE if e.code == 404 else None
     except Exception:
         return None
     ver = rel.get('tag_name', '').lstrip('v')
@@ -39,8 +44,9 @@ def apply_update(tar_bytes: bytes, app_dir: str = APP_DIR, log=print) -> str:
     """Extract a release tarball (single top-level dir) over app_dir. Returns new version."""
     with tempfile.TemporaryDirectory(dir=os.path.dirname(app_dir)) as tmp:
         with tarfile.open(fileobj=io.BytesIO(tar_bytes), mode='r:gz') as t:
-            members = [m for m in t.getmembers() if not (m.name.startswith('/') or '..' in m.name.split('/'))]
-            t.extractall(tmp, members=members)
+            # regular files and folders only: a link member could point a later file outside tmp
+            members = [m for m in t.getmembers() if (m.isfile() or m.isdir()) and not (m.name.startswith('/') or '..' in m.name.split('/'))]
+            t.extractall(tmp, members=members, **({'filter': 'data'} if hasattr(tarfile, 'data_filter') else {}))
         tops = [d for d in os.listdir(tmp) if os.path.isdir(os.path.join(tmp, d))]
         src = os.path.join(tmp, tops[0]) if len(tops) == 1 and not os.path.exists(os.path.join(tmp, 'bin')) else tmp
         stage = app_dir + '.new'
@@ -59,8 +65,10 @@ def apply_update(tar_bytes: bytes, app_dir: str = APP_DIR, log=print) -> str:
 def check_and_update(log=print, fetch=_get) -> str:
     cur = current_version()
     latest = latest_release()
+    if latest == NO_RELEASE:
+        return f'wow-deck {cur}: no release has been published at github.com/{REPO} yet.'
     if not latest:
-        return f'wow-deck {cur}: could not reach the release feed (offline, or the repository is private).'
+        return f'wow-deck {cur}: could not reach the release feed (offline?).'
     ver, url = latest
     if _vtuple(ver) <= _vtuple(cur):
         return f'wow-deck {cur} is up to date.'

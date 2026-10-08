@@ -53,8 +53,8 @@ SECTIONS: list[tuple[str, str, list]] = [
       'The second key of a Steam chord (the X in Steam+X, for example) still reaches WoW as a tap, and '
       'the "..." button reaches WoW as an A tap. That is a limit of the controller emulation.',
       'While the paddle mapping is installed, Steam ignores real DualSense Edge controllers.',
-      'Everything can be removed with "wow-deck uninstall" in a terminal. The Steam shortcut and '
-      'WoW itself stay.',
+      'Everything can be removed with the Uninstall button (or "wow-deck uninstall --all" in a '
+      'terminal). Battle.net, its Steam shortcut and WoW itself stay.',
       'WoW Deck is part of the ConsolePort project: github.com/seblindfors/wow-deck']),
 ]
 

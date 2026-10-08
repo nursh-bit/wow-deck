@@ -7,6 +7,7 @@ from . import steam
 INPUTPLUMBER_MIN_STEAMOS = (3, 7)
 PROTON_BAD = {'proton-10.0-1', 'proton-10.0-2'}          # PROTON_*_HIDRAW inverted; DS5 still fine but avoid
 EDGE_HID_ID = '0003:0000054C:00000DF2'
+WOW_EXES = ('Wow.exe', 'WoW.exe', 'WowClassic.exe', 'WowT.exe', 'WowB.exe')   # retail, Classic flavours, PTR, beta
 
 
 def run(cmd: list[str], **kw) -> subprocess.CompletedProcess:
@@ -107,7 +108,7 @@ def wow_flavour_dirs(root: str) -> list[str]:
                        'World of Warcraft', '_*_')
     out = []
     for d in sorted(glob.glob(pat)):
-        if any(os.path.isfile(os.path.join(d, n)) for n in ('Wow.exe', 'WoW.exe', 'WowClassic.exe', 'WowT.exe', 'WowB.exe')):
+        if any(os.path.isfile(os.path.join(d, n)) for n in WOW_EXES):
             out.append(d)
     return out
 

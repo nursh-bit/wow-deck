@@ -18,7 +18,7 @@ else
 fi
 BIN="$HOME/.local/bin"
 SRC="${WOW_DECK_SRC:-}"
-URL="${WOW_DECK_URL:-https://github.com/seblindfors/wow-deck/releases/latest/download/wow-deck.tar.gz}"
+URL="${WOW_DECK_URL:-https://github.com/nursh-bit/wow-deck/releases/latest/download/wow-deck.tar.gz}"
 
 mkdir -p "$DEST" "$BIN"
 if [ -n "$SRC" ]; then

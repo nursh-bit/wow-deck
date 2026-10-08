@@ -217,19 +217,6 @@ def setup(args) -> int:
         ui.error('Steam was not found on this system.'); return 1
     if deck.in_gamescope():
         ui.error('Please run the setup from Desktop Mode (Steam menu -> Power -> Switch to Desktop).'); return 1
-    if deck.password_status() not in (None, 'P'):
-        # Passwordless Deck: create one here so the paddles step can use sudo (Decky asks the same).
-        while True:
-            pw = ui.password('Your Steam Deck has no user password yet. Native paddles need one for a single system step.\n\n'
-                             'Choose a password for the "deck" user (you can change it later with passwd):')
-            if pw is None:
-                ui.error('Setup cancelled: a password is required for the native paddles step.\nUntick that item to set up without it.'); return 1
-            pw2 = ui.password('Repeat the password:')
-            if pw and pw == pw2:
-                if deck.set_user_password(pw):
-                    ui.info('Password set.'); break
-                ui.error('Setting the password failed. Open Konsole and run "passwd", then start the setup again.'); return 1
-            ui.error('The passwords did not match; try again.')
     env = steam.session_env()
     if subprocess.run(['systemctl', '--user', 'is-active', 'wow-deck-finish.service'], capture_output=True, env=env).returncode == 0:
         ui.info('WoW Deck is still finishing a previous setup in the background (waiting for World of Warcraft to be installed).\n\n'
@@ -246,6 +233,19 @@ def setup(args) -> int:
         to_remove = []
     if not to_install and not to_remove:
         ui.info('Everything selected is already installed. Nothing to do.'); return 0
+    if any(c.id == 'paddles' for c in to_install + to_remove) and deck.password_status() not in (None, 'P'):
+        # Passwordless Deck: create one here so the paddles step can use sudo (Decky asks the same).
+        while True:
+            pw = ui.password('Your Steam Deck has no user password yet. Native paddles need one for a single system step.\n\n'
+                             'Choose a password for the "deck" user (you can change it later with passwd). Steam + X opens the on-screen keyboard:')
+            if pw is None:
+                ui.error('Setup cancelled: a password is required for the native paddles step.\nRun Set up again and untick that item to set up without it.'); return 1
+            pw2 = ui.password('Repeat the password:')
+            if pw and pw == pw2:
+                if deck.set_user_password(pw):
+                    ui.info('Password set.'); break
+                ui.error('Setting the password failed. Open Konsole and run "passwd", then start the setup again.'); return 1
+            ui.error('The passwords did not match; try again.')
     failures = []
     def run_step(c, fn, verb):
         log(f'== {verb} {c.title}'); ui.note(f'{verb} {c.title}...')
@@ -432,7 +432,7 @@ def finish(args) -> int:
     while time.time() < deadline:
         if not seen_login and battlenet.logged_in(compat):
             seen_login = True; log('  Battle.net login detected')
-        if os.path.isfile(battlenet.wow_exe(compat)):
+        if battlenet.wow_installed_in(compat):
             log('  World of Warcraft executable present (Battle.net keeps downloading data; files can be placed now)'); break
         # In Game Mode, open Battle.net for the user through Steam (once every few minutes if
         # it is not running), so the hand-off is "switch to Game Mode" and nothing else.
@@ -442,7 +442,9 @@ def finish(args) -> int:
             log(f'  asked Steam to launch Battle.net: {"sent" if ok else "failed"}')
         time.sleep(20)
     else:
-        log('  gave up waiting for WoW'); return 1
+        log('  gave up waiting for WoW')
+        open(FINISH_DONE, 'w').write('GAVE UP waiting for World of Warcraft to be installed; run Set up again once it is\n')
+        return 1
     time.sleep(30)                       # let Battle.net finish writing the install
     ctx.wtf_dirs = deck.wow_wtf_dirs(root); ctx.shortcuts = deck.find_battlenet_shortcuts(root)
     failures = []
@@ -488,8 +490,8 @@ def main(argv=None) -> int:
     ap.add_argument('--root-phase', choices=['install', 'uninstall'], help=argparse.SUPPRESS)
     sub = ap.add_subparsers(dest='cmd')
     sub.add_parser('doctor', help='check every layer and report')
-    pi = sub.add_parser('install', help='install/update everything'); pi.add_argument('--skip-root', action='store_true'); pi.add_argument('--no-steam-edit', action='store_true', help='print the Steam steps instead of editing Steam files'); pi.add_argument('--dry-run', action='store_true', help='show what would change')
-    sub.add_parser('update', help='alias for install')
+    for verb, text in (('install', 'install/update everything'), ('update', 'alias for install')):
+        pi = sub.add_parser(verb, help=text); pi.add_argument('--skip-root', action='store_true'); pi.add_argument('--no-steam-edit', action='store_true', help='print the Steam steps instead of editing Steam files'); pi.add_argument('--dry-run', action='store_true', help='show what would change')
     pu = sub.add_parser('uninstall', help='remove the paddle mapping (--all: also addons, CurseForge and WoW Deck itself)'); pu.add_argument('--skip-root', action='store_true'); pu.add_argument('--no-steam-edit', action='store_true'); pu.add_argument('--no-steam-relaunch', action='store_true', help=argparse.SUPPRESS); pu.add_argument('--all', action='store_true', help='remove every component WoW Deck installed and WoW Deck itself (Battle.net/WoW stay)')
     pf = sub.add_parser('finish', help=argparse.SUPPRESS); pf.add_argument('--components', default=''); pf.add_argument('--timeout-hours', type=float, default=12)
     pb = sub.add_parser('battlenet', help=argparse.SUPPRESS); pb.add_argument('--no-steam-edit', action='store_true'); pb.add_argument('--wait-wow', type=float, default=0)

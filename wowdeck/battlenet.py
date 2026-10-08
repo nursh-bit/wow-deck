@@ -2,7 +2,7 @@
 game: SteamLinuxRuntime_sniper entry point -> proton waitforexitandrun -> exe, with the
 STEAM_COMPAT_* environment. The user still logs in and installs WoW inside Battle.net."""
 from __future__ import annotations
-import os, subprocess, threading, time, urllib.request, zlib
+import glob, os, subprocess, threading, time, urllib.request, zlib
 from . import deck, steam
 
 INSTALLER_URL = 'https://www.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live'
@@ -31,6 +31,12 @@ def wow_exe(compat: str) -> str:
     return os.path.join(compat, 'pfx', 'drive_c', 'Program Files (x86)', 'World of Warcraft', '_retail_', 'Wow.exe')
 
 
+def wow_installed_in(compat: str) -> bool:
+    """Any WoW flavour (`_retail_`, `_classic_era_`, ...) has its executable in this prefix."""
+    base = os.path.join(compat, 'pfx', 'drive_c', 'Program Files (x86)', 'World of Warcraft')
+    return any(os.path.isfile(os.path.join(d, n)) for d in glob.glob(os.path.join(glob.escape(base), '_*_')) for n in deck.WOW_EXES)
+
+
 def pick_proton(root: str) -> tuple[str, str] | None:
     """(CompatToolMapping name, install dir) for the best available Proton. WOW_DECK_PROTON
     (e.g. proton_10) forces a specific tool."""
@@ -52,9 +58,15 @@ def download_installer(dest_dir: str, log=print) -> str:
         log(f'  ok      {dest}'); return dest
     log(f'  downloading Battle.net installer')
     req = urllib.request.Request(INSTALLER_URL, headers={'User-Agent': 'wow-deck'})
-    with urllib.request.urlopen(req, timeout=120) as r, open(dest, 'wb') as f:
-        while chunk := r.read(1 << 20):
-            f.write(chunk)
+    part = dest + '.part'                        # an interrupted download must not pass the size check next time
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r, open(part, 'wb') as f:
+            while chunk := r.read(1 << 20):
+                f.write(chunk)
+        os.replace(part, dest)
+    finally:
+        if os.path.exists(part):
+            os.remove(part)
     log(f'  wrote   {dest} ({os.path.getsize(dest) // 1024} KB)')
     return dest
 

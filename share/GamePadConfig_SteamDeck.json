@@ -3,7 +3,7 @@
         "Steam Deck native paddles: the Deck controller is presented to Proton as a DualSense Edge",
         "(InputPlumber ds5-edge target, VID 054C PID 0DF2). WoW maps the Edge natively; this file only",
         "renames it, sets letter labels, and orders the paddles Deck-style: L4=P1 R4=P2 L5=P3 R5=P4.",
-        "Managed by wow-deck; see wow-resources/docs/tasks/steam-deck-native-paddles.md"
+        "Managed by WoW Deck; removed by \"wow-deck uninstall\"."
     ],
     "configVersion": 4,
     "configs": [
